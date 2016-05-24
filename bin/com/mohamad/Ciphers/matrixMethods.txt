@@ -1,0 +1,151 @@
+
+
+	private int getDet_inv_mod_26(int det) {
+
+		for (int x = -25; x < 26; x++) {
+			if ((x * det) % 26 == 1)
+				return x;
+
+		}
+
+		return 0;
+	}
+
+	public int[][] mult(int[][] A, int[][] B) {
+		int A_rows = A.length;
+		int A_col = A[0].length;
+		int B_rows = B.length;
+		int B_col = B[0].length;
+
+		int[][] result = new int[A_rows][ B_col];
+		for (int i = 0; i < result.length; i++)
+			for(int j=0;j<result[0].length;j++)
+				result[i][j]= 0;
+
+		if (A_col != B_rows) {
+			System.err.println("Error MAtrix dimentions!");
+			return null;
+		}
+
+		for (int i = 0; i < A_rows; i++) {
+			for (int j = 0; j < B_col; j++) {
+
+				for (int k = 0; k < B_rows; k++) {
+					result[i][ j]=result[i][ j] + (A[i][k]) * B[k][ j];
+				}
+			}
+
+		}
+
+		return result;
+
+	}
+
+	private int[][] Cofactors(int[][] mat) {
+		int[][] out = new int[mat.length][mat.length];
+
+		for (int i = 0; i < mat.length; i++) {
+			for (int j = 0; j < mat.length; j++) {
+				int sign = (i + j) % 2 == 0 ? +1 : -1;
+
+				int[][] smallMat = new int[mat.length - 1][mat.length - 1];
+				int s_ctr_i = 0, s_ctr_j = 0;
+				for (int ii = 0; ii < mat.length; ii++) {
+					if (ii == i)
+						continue;
+					for (int jj = 0; jj < mat.length; jj++) {
+						if (jj == j)
+							continue;
+
+						smallMat[s_ctr_i][s_ctr_j] = mat[ii][jj];
+						s_ctr_j = (s_ctr_j + 1) % (mat.length - 1);
+
+					}
+					s_ctr_i++;
+				}
+				int det = determinant(smallMat);
+				while (det < 0) {
+					det += 26;
+				}
+
+				det = det % 26;
+				out[i][j] = sign * det;
+
+				while (out[i][j] < 0) {
+					out[i][j] += 26;
+				}
+
+				out[i][j] = out[i][j] % 26;
+			}
+		}
+
+		return out;
+	}
+
+	////////// copy right @
+	////////// http://professorjava.weebly.com/matrix-determinant.html
+	private int determinant(int[][] matrix) { // method sig. takes a matrix (two
+												// dimensional array), returns
+												// determinant.
+		int sum = 0;
+		int s;
+		if (matrix.length == 1) { // bottom case of recursion. size 1 matrix
+									// determinant is itself.
+			return (matrix[0][0]);
+		}
+		for (int i = 0; i < matrix.length; i++) { // finds determinant using
+													// row-by-row expansion
+			int[][] smaller = new int[matrix.length - 1][matrix.length - 1]; // creates
+																				// smaller
+																				// matrix-
+																				// values
+																				// not
+																				// in
+																				// same
+																				// row,
+																				// column
+			for (int a = 1; a < matrix.length; a++) {
+				for (int b = 0; b < matrix.length; b++) {
+					if (b < i) {
+						smaller[a - 1][b] = matrix[a][b];
+					} else if (b > i) {
+						smaller[a - 1][b - 1] = matrix[a][b];
+					}
+				}
+			}
+			if (i % 2 == 0) { // sign changes based on i
+				s = 1;
+			} else {
+				s = -1;
+			}
+			sum += s * matrix[0][i] * (determinant(smaller)); // recursive step:
+																// determinant
+																// of larger
+																// determined by
+																// smaller.
+		}
+		return (sum); // returns determinant value. once stack is finished,
+						// returns final determinant.
+	}
+
+	public int[][] matInv_mod(int[][] mat){
+		if(mat.length != mat[0].length){
+			System.err.println("ERROR: MATRIX HAS NO INVERSE!");
+			return null;
+		}
+		int m= mat.length;
+		int[][] out = new int[m][m];
+		int detK = determinant(mat);
+		detK = getDet_inv_mod_26(detK);
+		if (detK < 0)
+			detK += 26;
+
+		int[][] cof = Cofactors(mat);
+		
+		for (int i = 0; i < m; i++)
+			for (int j = 0; j < m; j++) {
+				out[i][j]= (cof[i][j] * detK) % 26;
+			}
+		
+		return out;
+	}
